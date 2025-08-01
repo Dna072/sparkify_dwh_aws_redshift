@@ -1,0 +1,25 @@
+[DWH]
+HOST=
+DB_NAME=
+DB_USER=
+DB_PASSWORD=
+DB_PORT=5439
+DWH_CLUSTER_TYPE=multi-node
+DWH_NUM_NODES=4
+DWH_NODE_TYPE=ra3.large # choose node type from AWS
+DWH_IAM_ROLE_NAME=
+DWH_CLUSTER_IDENTIFIER=
+
+[IAM_ROLE]
+ARN=''
+
+[S3]
+LOG_DATA='s3://udacity-dend/log-data'
+LOG_JSONPATH='s3://udacity-dend/log_json_path.json'
+SONG_DATA='s3://udacity-dend/song-data'
+
+[AWS]
+KEY=
+SECRET=
+
+
