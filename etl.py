@@ -4,12 +4,32 @@ from sql_queries import copy_table_queries, insert_table_queries
 
 
 def load_staging_tables(cur, conn):
+    """
+       Loads data from S3 into Redshift staging tables.
+
+       Executes all COPY commands defined in the `copy_table_queries` list using the given
+       database cursor and commits each transaction.
+
+       Args:
+           cur (psycopg2.extensions.cursor): Cursor object to execute PostgreSQL commands.
+           conn (psycopg2.extensions.connection): Connection object to commit transactions.
+    """
     for query in copy_table_queries:
         cur.execute(query)
         conn.commit()
 
 
 def insert_tables(cur, conn):
+    """
+        Inserts data from staging tables into final analytics tables.
+
+        Executes all INSERT statements defined in the `insert_table_queries` list using the given
+        database cursor and commits each transaction.
+
+        Args:
+            cur (psycopg2.extensions.cursor): Cursor object to execute PostgreSQL commands.
+            conn (psycopg2.extensions.connection): Connection object to commit transactions.
+    """
     for query in insert_table_queries:
         cur.execute(query)
         conn.commit()

@@ -55,20 +55,18 @@ redshift = boto3.client('redshift',
                         aws_access_key_id=KEY,
                         aws_secret_access_key=SECRET)
 
-sampleDbBucket = s3.Bucket("awssampledbuswest2")
-
-
-# Iterate over bucket objects starting with "ssbgz" and print
-# for obj in sampleDbBucket.objects.filter(Prefix='ssbgz'):
-#     print(obj.key)
-
-# Get already created IAM Role. Comment this code if you will like to create the IAM Role in code
-# NB: User account
-# roleArn = iam.get_role(RoleName=DWH_IAM_ROLE_NAME)['Role']['Arn']
-# print(roleArn)
 
 
 def create_redshift_iam_role():
+    """
+        Create or retrieve an IAM role that allows Redshift to access S3.
+
+        If the role already exists, it is returned. Otherwise, a new role is created
+        with the AmazonS3ReadOnlyAccess policy attached.
+
+        Returns:
+            str: ARN of the IAM role.
+    """
     try:
         # Try to get existing role
         role_arn = iam.get_role(RoleName=DWH_IAM_ROLE_NAME)['Role']['Arn']
@@ -108,7 +106,12 @@ def create_redshift_iam_role():
 
 
 def create_redshift_cluster():
-    # Create Redshift Cluster
+    """
+        Create a Redshift cluster with the provided configuration from dwh.cfg.
+
+        Uses the IAM role for S3 access, and sets the cluster to be publicly accessible
+        for demo purposes.
+    """
     try:
         role_arn = iam.get_role(RoleName=DWH_IAM_ROLE_NAME)['Role']['Arn']
         response = redshift.create_cluster(
@@ -134,6 +137,19 @@ def create_redshift_cluster():
 
 
 def wait_for_cluster_available(timeout=1800, interval=30):
+    """
+        Poll until the Redshift cluster becomes available or until timeout.
+
+        Args:
+            timeout (int): Maximum time in seconds to wait.
+            interval (int): Interval in seconds between status checks.
+
+        Returns:
+            dict: Properties of the available cluster.
+
+        Raises:
+            TimeoutError: If the cluster doesn't become available within the timeout.
+    """
     print("⏳  Waiting for Redshift cluster to become available...")
     elapsed = 0
     while elapsed < timeout:
@@ -155,6 +171,19 @@ def wait_for_cluster_available(timeout=1800, interval=30):
 
 
 def wait_for_cluster_deletion(timeout=900, interval=20):
+    """
+      Wait for the Redshift cluster to be fully deleted.
+
+      Args:
+          timeout (int): Maximum time in seconds to wait.
+          interval (int): Interval in seconds between status checks.
+
+      Returns:
+          None
+
+      Raises:
+          TimeoutError: If the cluster is not deleted within the timeout.
+    """
     print("⏳  Waiting for Redshift cluster to be deleted...")
     elapsed = 0
 
@@ -176,6 +205,15 @@ def wait_for_cluster_deletion(timeout=900, interval=20):
 
 
 def pretty_redshift_props(props=None):
+    """
+      Print and return a DataFrame of key Redshift cluster properties.
+
+      Args:
+          props (dict, optional): Cluster properties. If not provided, fetched via API.
+
+      Returns:
+          pd.DataFrame: DataFrame containing selected cluster properties.
+    """
     if props is None:
         props = redshift.describe_clusters(ClusterIdentifier=DWH_CLUSTER_IDENTIFIER)['Clusters'][0]
     pd.set_option('display.max_colwidth', None)
@@ -189,6 +227,15 @@ def pretty_redshift_props(props=None):
 
 # Function to update the default security group to allow ingress to port DWH_PORT
 def open_port_to_redshift(my_cluster_props):
+    """
+        Open TCP port in the default security group to allow Redshift access.
+
+        Args:
+            my_cluster_props (dict): Redshift cluster properties containing VPC ID.
+
+        Returns:
+            None
+    """
     try:
         vpc = ec2.Vpc(id=my_cluster_props['VpcId'])
         default_sg = list(vpc.security_groups.all())[0]
@@ -212,6 +259,15 @@ def open_port_to_redshift(my_cluster_props):
 
 # Test connection to cluster
 def test_cluster_connection(my_cluster_props=None):
+    """
+        Attempt to connect to the Redshift cluster using psycopg2.
+
+        Args:
+            my_cluster_props (dict, optional): Redshift cluster properties. Fetched if None.
+
+        Returns:
+            None
+    """
     print("🧪 Testing connection...")
     if my_cluster_props is None:
         my_cluster_props = redshift.describe_clusters(ClusterIdentifier=DWH_CLUSTER_IDENTIFIER)['Clusters'][0]
@@ -231,6 +287,12 @@ def test_cluster_connection(my_cluster_props=None):
 
 
 def delete_redshift_cluster():
+    """
+       Delete the Redshift cluster and wait for confirmation of deletion.
+
+       Returns:
+           None
+    """
     try:
         redshift.delete_cluster(
             ClusterIdentifier=DWH_CLUSTER_IDENTIFIER,
@@ -242,13 +304,6 @@ def delete_redshift_cluster():
     except Exception as e:
         print('❌ Could not delete the redshift cluster:', e)
 
-
-# create_redshift_iam_role()
-# #create_redshift_cluster()
-#
-#delete_redshift_cluster()
-# pretty_redshift_props()
-# #test_cluster_connection()
 
 if __name__ == "__main__":
     import argparse

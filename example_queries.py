@@ -49,7 +49,20 @@ example_queries = {
     """
 }
 
+
 def run_queries():
+    """
+      Connects to the Redshift cluster and executes a series of predefined SQL queries.
+
+      For each query:
+      - Measures and prints the query execution time.
+      - Fetches and displays the result as a formatted pandas DataFrame.
+
+      Closes the database connection after all queries are executed.
+
+      Raises:
+          Prints an error message if the connection or query execution fails.
+      """
     try:
         conn = psycopg2.connect("host={} dbname={} user={} password={} port={}"
                                 .format(*config['DWH'].values()))

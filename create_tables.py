@@ -4,6 +4,13 @@ from sql_queries import create_table_queries, drop_table_queries
 
 
 def drop_tables(cur, conn):
+    """
+        Drops all tables listed in the `drop_table_queries` list.
+
+        Args:
+            cur (psycopg2.cursor): Cursor object to execute SQL queries.
+            conn (psycopg2.connection): Connection object to commit transactions.
+    """
     print(f"Dropping tables...")
     for query in drop_table_queries:
         cur.execute(query)
@@ -11,6 +18,13 @@ def drop_tables(cur, conn):
 
 
 def create_tables(cur, conn):
+    """
+        Creates all tables listed in the `create_table_queries` list.
+
+        Args:
+            cur (psycopg2.cursor): Cursor object to execute SQL queries.
+            conn (psycopg2.connection): Connection object to commit transactions.
+    """
     print("Creating tables...")
     for query in create_table_queries:
         cur.execute(query)
